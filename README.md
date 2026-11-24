@@ -6,6 +6,12 @@
 - 权限只有 `NFC` 和 `VIBRATE`，**没有 INTERNET 权限**，数据不出手机
 - minSdk 21（Android 5.0）/ targetSdk 34，当前版本 **2.22**
 
+## 安装 / 获取
+
+- **直接下载 APK**：[Releases](https://github.com/Poloair/cu-nfc-balance/releases/latest) → `cu-nfc-balance-2.22.apk`（已签名，v1/v2/v3 校验通过）
+- **源码**：`git clone https://github.com/Poloair/cu-nfc-balance.git`，构建见下方「自己编译」
+- 首次安装需在系统设置里允许「安装未知来源应用」
+
 ## 能读什么卡
 
 遵循韩国 **KS X 6924 / One Card All Pass** 标准、把余额写在卡内芯片的预付交通卡。采用动态探测 + 已知 AID 遍历，覆盖主流卡种：
