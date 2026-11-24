@@ -1,6 +1,6 @@
 # 交接纲要 · 交通卡余额查询（NFC）Android App
 
-> 给接手的 AI／工程师：这份文档描述**当前真实代码状态**（v2.22 / versionCode 31），不是需求稿。读完「0. 30 秒速览」+「2. 构建」+「4. 代码地图」就能开工；改代码前务必看「9. 约定与坑」。
+> 给接手的 AI／工程师：这份文档描述**当前真实代码状态**（v2.23 / versionCode 32），不是需求稿。读完「0. 30 秒速览」+「2. 构建」+「4. 代码地图」就能开工；改代码前务必看「9. 约定与坑」。
 
 ---
 
@@ -9,7 +9,7 @@
 | 项 | 值 |
 |---|---|
 | 包名 | `com.cubalance.app` |
-| 版本 | `versionCode 31` / `versionName "2.22"`（在 `AndroidManifest.xml` 里改） |
+| 版本 | `versionCode 32` / `versionName "2.23"`（在 `AndroidManifest.xml` 里改） |
 | minSdk / targetSdk | 21 / 34 |
 | 语言/框架 | Java 8 语法、原生 Android SDK（`android.*`）、**没有 Gradle、没有 AndroidX、没有 Material Components、没有第三方库** |
 | 权限 | 只有 `NFC` + `VIBRATE`，**没有 INTERNET**（产品红线：纯本地、不联网、免登录） |
@@ -177,7 +177,7 @@ aliasOf/setAlias ; alertOf/setAlert ; moveCard(key,±1) ; loadOrder/saveOrder
 - 优先用 Config DF 动态读取"卡自己声明的主应用 + 余额命令"，否则遍历已知 AID 兜底。
 - 余额命令按 AID 映射（`balanceCmdForAid`），失败会依次试多种 CLA/INS/P1/P2。
 - 交易记录：`READ RECORD`，SFI 与 PATH 两条路都试；解析支持 **T-money 46 字节** 与 **Cashbee 26 字节** 两种布局。
-- FeliCa 分支：Suica 系（service `0007`）与八达通（service `0117`），金额由相邻余额差推得。
+- FeliCa 分支（v2.23 重写，此前命令码写错导致 Suica/八达通全读不出）：Read Without Encryption 用命令 `06h` / 响应 `07h`（0x10/0x12 是 Authentication1/2，旧版误用）；2 字节块列表元素 = 高字节 `0x80`（2 字节标记+服务序号 0）、低字节块号；Suica 余额在记录 10-11 **小端 2 字节**（旧版误当 4 字节大端）；历史日期 @4-5 为 7bit 年(自 2000)/4bit 月/5bit 日打包（旧版误当天数）；Suica 系 service `0007` 余额 + `090F` 历史（相邻余额差推金额），八达通 `0117` 余额（raw-350)/10，卡内无历史；`nfc_tech_filter.xml` 已补 NfcF tech-list（后台贴卡可拉起）；**此分支仍未经真卡验证**，改完必须拿实体 Suica/八达通卡测
 - 币种按 AID 判定 → `Money.KRW/CNY/JPY/HKD`。
 - 诊断写进 `Store.diag`，UI 入口：消费记录页长按标题。
 
@@ -212,6 +212,7 @@ aliasOf/setAlias ; alertOf/setAlert ; moveCard(key,±1) ; loadOrder/saveOrder
 | 2.20 | 统计页加回柱状图；快照改为每次读卡必写；余额记录折叠 + 内部滚动 |
 | 2.21 | 柱状图点击光柱看金额；余额记录长按删除；折叠改 3 条半 |
 | 2.22 | 低余额提醒改成「预计可用天数」（新增 `Forecast`），提醒线单位迁移；输入弹窗支持说明正文 |
+| 2.23 | 修复 FeliCa 协议级错误：RWE 命令 06/07、块列表元素字节序、Suica 余额小端 2 字节、日期 7/4/5bit 打包；tech filter 补 NfcF；build.sh 两处无条件 cygpath 改条件执行（Linux/macOS 可跑） |
 
 **已撤销/不要重加**：汇率换算（用户明确不要，且要联网）、首页隐私按钮（只在设置页）、首页多卡汇总卡、统计页独立页面里的重复图表。
 

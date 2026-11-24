@@ -88,7 +88,12 @@ clean_dir "$BUILD/classes"
 clean_dir "$BUILD/dexout"
 find "$PROJ/src" -name '*.java' > "$BUILD/sources.txt"
 find "$BUILD/gen" -name '*.java' >> "$BUILD/sources.txt"
-cygpath -w -f "$BUILD/sources.txt" > "$BUILD/sources-win.txt"
+# Windows 下把每行路径转成反斜杠绝对路径；Linux/macOS 直接用
+if command -v cygpath >/dev/null 2>&1; then
+  cygpath -w -f "$BUILD/sources.txt" > "$BUILD/sources-win.txt"
+else
+  cp "$BUILD/sources.txt" "$BUILD/sources-win.txt"
+fi
 "$JAVA" -jar "$W_ECJ" -source 8 -target 8 -encoding UTF-8 \
   -nowarn \
   -cp "$W_ANDROID_JAR" \
@@ -97,7 +102,12 @@ echo "class files: $(find "$BUILD/classes" -name '*.class' | wc -l)"
 
 echo "== 4. d8 转 dex =="
 # 参数文件里写每份 class 的 Windows 绝对路径（避免 cwd 与路径解析问题）
-find "$BUILD/classes" -name '*.class' | cygpath -w -f - > "$BUILD/classes.txt"
+# 参数文件里写每份 class 的绝对路径（避免 cwd 与路径解析问题）
+if command -v cygpath >/dev/null 2>&1; then
+  find "$BUILD/classes" -name '*.class' | cygpath -w -f - > "$BUILD/classes.txt"
+else
+  find "$BUILD/classes" -name '*.class' > "$BUILD/classes.txt"
+fi
 "$JAVA" -cp "$W_D8" com.android.tools.r8.D8 \
   --lib "$W_ANDROID_JAR" \
   --min-api 21 \

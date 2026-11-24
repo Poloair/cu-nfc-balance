@@ -470,8 +470,9 @@ public class CardReader {
 
             // 1) Suica / PASMO / ICOCA / TOICA / nimoca / SUGOCA 等（FeliCa 系统 0003）
             byte[] balBlock = felicaRead(felica, idm, 0x0007, 0);
-            if (balBlock != null && balBlock.length >= 14) {
-                int balance = beInt(balBlock, 10, 4);
+            if (balBlock != null && balBlock.length >= 12) {
+                // 余额在 10-11，2 字节小端（公开布局与 Metrodroid 一致）
+                int balance = leInt(balBlock, 10, 2);
                 log("Suica-family BALANCE=" + balance);
                 List<Trip> trips = new ArrayList<>();
                 try { trips = readFelicaTrips(felica, idm, balance); }
@@ -501,22 +502,22 @@ public class CardReader {
         }
     }
 
-    /** FeliCa ReadWithoutEncryption：读指定 service 的一个 block，返回 16 字节数据，失败 null */
+    /** FeliCa ReadWithoutEncryption（命令 06h / 响应 07h）：读指定 service 的一个 block，返回 16 字节数据，失败 null */
     private static byte[] felicaRead(NfcF f, byte[] idm, int service, int block) throws IOException {
         // 帧：LEN(1) CMD(1) IDm(8) 服务数(1) 服务码LE(2) 块数(1) 块列表(2)
         byte[] req = new byte[16];
-        req[0] = 0x10; req[1] = 0x10; // LEN=16, ReadWithoutEncryption
+        req[0] = 0x10; req[1] = 0x06; // LEN=16, Read Without Encryption
         System.arraycopy(idm, 0, req, 2, 8);
         req[10] = 0x01;
         req[11] = (byte) (service & 0xFF);
         req[12] = (byte) ((service >> 8) & 0xFF);
         req[13] = 0x01;
-        req[14] = (byte) (0x80 | block); // 2字节块列表元素
-        req[15] = 0x00;
+        req[14] = (byte) 0x80;   // 2 字节块列表元素：高字节 0x80|=服务序号(0)
+        req[15] = (byte) block;  // 低字节 = 块号
         byte[] resp = f.transceive(req);
         log(">> FeliCa RW svc=" + hex4(service) + " RX " + bytesToHex(resp));
         if (resp == null || resp.length < 13 + 16) return null;
-        if ((resp[1] & 0xFF) != 0x12) return null;          // 响应命令码
+        if ((resp[1] & 0xFF) != 0x07) return null;          // ReadWithoutEncryptionResponse
         if ((resp[10] & 0xFF) != 0 || (resp[11] & 0xFF) != 0) return null; // status1/2
         byte[] out = new byte[16];
         System.arraycopy(resp, 13, out, 0, 16);
@@ -532,20 +533,20 @@ public class CardReader {
             // 帧：LEN CMD IDm 服务数 服务码LE 块数 块列表(2×count)
             byte[] req = new byte[14 + 2 * count];
             req[0] = (byte) req.length;
-            req[1] = 0x10;
+            req[1] = 0x06;
             System.arraycopy(idm, 0, req, 2, 8);
             req[10] = 0x01;
             req[11] = 0x0F; req[12] = 0x09; // service 0x090F LE
             req[13] = (byte) count;
             for (int i = 0; i < count; i++) {
-                req[14 + 2 * i] = (byte) (0x80 | ((start + i) & 0xFF));
-                req[15 + 2 * i] = 0x00;
+                req[14 + 2 * i] = (byte) 0x80;       // 高字节：2 字节元素 + 服务序号 0
+                req[15 + 2 * i] = (byte) (start + i); // 低字节：块号
             }
             byte[] resp = f.transceive(req);
             log(">> FeliCa RW trips start=" + start + " RX len="
                     + (resp == null ? 0 : resp.length));
             if (resp == null || resp.length < 13) break;
-            if ((resp[1] & 0xFF) != 0x12 || (resp[10] & 0xFF) != 0 || (resp[11] & 0xFF) != 0) break;
+            if ((resp[1] & 0xFF) != 0x07 || (resp[10] & 0xFF) != 0 || (resp[11] & 0xFF) != 0) break;
             int n = resp[12] & 0xFF;
             boolean stop = false;
             for (int i = 0; i < n; i++) {
@@ -554,14 +555,18 @@ public class CardReader {
                 byte[] d = new byte[16];
                 System.arraycopy(resp, off, d, 0, 16);
                 if (allZero(d)) { stop = true; break; }
-                int bal = beInt(d, 10, 4);
+                int bal = leInt(d, 10, 2);       // 记录内余额：10-11 小端 2 字节
                 int proc = d[1] & 0xFF;
                 Trip t = new Trip();
                 t.type = (proc == 0x04) ? 2 : 0; // 0x04=チャージ(充值)，其它按消费
                 t.cost = Math.abs(prev - bal);   // 记录里不直接存金额，用相邻余额差
                 t.balance = bal;
-                long days = beInt(d, 4, 2);      // 自 2000-01-01 起的天数
-                t.timeMs = 946684800000L + days * 86400000L;
+                // 日期 @4-5：16 位打包（7bit 年自 2000 起 / 4bit 月 / 5bit 日）
+                int dv = ((d[4] & 0xFF) << 8) | (d[5] & 0xFF);
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                cal.clear();
+                cal.set(2000 + ((dv >> 9) & 0x7F), ((dv >> 5) & 0xF) - 1, dv & 0x1F);
+                t.timeMs = cal.getTimeInMillis();
                 t.timeText = "";
                 trips.add(t);
                 prev = bal;
@@ -660,6 +665,12 @@ public class CardReader {
     private static int beInt(byte[] b, int off, int len) {
         int v = 0;
         for (int i = 0; i < len; i++) v = (v << 8) | (b[off + i] & 0xFF);
+        return v;
+    }
+
+    private static int leInt(byte[] b, int off, int len) {
+        int v = 0;
+        for (int i = len - 1; i >= 0; i--) v = (v << 8) | (b[off + i] & 0xFF);
         return v;
     }
 
