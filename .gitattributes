@@ -1,0 +1,11 @@
+# 统一换行，避免 Windows 上提交 CRLF 导致 build.sh 在 Linux/mac 跑不了
+* text=auto
+*.sh   text eol=lf
+*.java text eol=lf
+*.xml  text eol=lf
+*.md   text eol=lf
+
+# 二进制
+*.png binary
+*.apk binary
+*.jar binary

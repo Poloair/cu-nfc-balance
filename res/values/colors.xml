@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 品牌色：薄荷绿点缀，浅灰仪表盘主体 -->
+    <color name="brand">#10A37F</color>
+    <color name="brand_dark">#0B7A63</color>
+    <color name="brand_light">#3EC9A5</color>
+    <color name="accent_blue">#3E7BD6</color>
+
+    <!-- 白卡与灰瓦片 -->
+    <color name="glass">#FFFFFF</color>
+    <color name="glass_deep">#F3F4F6</color>
+    <color name="glass_edge">#FFFFFFFF</color>
+
+    <color name="bg">#F4F5F7</color>
+    <color name="text_main">#1B2420</color>
+    <color name="text_sub">#8A9296</color>
+    <color name="divider">#1E10A37F</color>
+    <color name="up">#D64545</color>
+    <color name="down">#2E9E5B</color>
+    <color name="gain">#0E9E6F</color>
+
+    <!-- 多卡切换胶囊选中态文字 -->
+    <color name="chip_text_sel">#FFFFFF</color>
+
+    <!-- 图表（本地绘制组件用语义色，深色模式由 values-night 覆盖） -->
+    <color name="chart_line">#10A37F</color>
+    <color name="chart_dot">#0B7A63</color>
+    <color name="chart_grid">#4D10A37F</color>
+    <color name="chart_label">#5C6B66</color>
+    <color name="chart_pay">#3A4046</color>
+    <color name="chart_text">#8A9296</color>
+</resources>

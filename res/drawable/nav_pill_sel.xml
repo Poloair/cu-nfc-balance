@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底栏选中项：液态玻璃薄荷胶囊（半透明渐变 + 白色高光边） -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="22dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#6610A37F"
+                android:endColor="#3310A37F" />
+        </shape>
+    </item>
+
+    <item
+        android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="21dp" />
+            <solid android:color="#00000000" />
+            <stroke android:width="1dp" android:color="#66FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

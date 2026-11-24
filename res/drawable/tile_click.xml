@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 可点击的白色瓦片：按下有薄荷色水波 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#1F10A37F">
+    <item android:drawable="@drawable/tile_bg" />
+</ripple>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#10A37F</item>
+        <item name="android:colorPrimaryDark">#F4F5F7</item>
+        <item name="android:colorAccent">#10A37F</item>
+        <item name="android:windowBackground">@drawable/bg_glass</item>
+        <item name="android:textColorPrimary">#1B2420</item>
+        <item name="android:textColorSecondary">#8A9296</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+</resources>

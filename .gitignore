@@ -1,0 +1,16 @@
+# 构建产物（每次 build.sh 都会重新生成）
+build/
+
+# APK 签名附属文件
+*.apk.idsig
+
+# 签名密钥绝不入库
+*.jks
+*.keystore
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+local.properties

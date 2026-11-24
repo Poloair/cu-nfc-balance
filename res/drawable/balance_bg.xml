@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 余额区：柔和薄荷渐变瓦片 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#EAF8F1"
+        android:endColor="#DDF2E8" />
+    <corners android:radius="22dp" />
+</shape>

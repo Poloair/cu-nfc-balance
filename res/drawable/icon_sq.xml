@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 卡片标题左侧的小图标底（薄荷色圆角方块） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#E4F6EE" />
+    <corners android:radius="14dp" />
+</shape>
